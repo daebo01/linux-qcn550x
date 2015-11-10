@@ -220,6 +220,8 @@ static int uart_port_startup(struct tty_struct *tty, struct uart_state *state,
 	if (retval == 0) {
 		if (uart_console(uport) && uport->cons->cflag) {
 			tty->termios.c_cflag = uport->cons->cflag;
+			tty->termios.c_ospeed = uport->cons->baud;
+			tty->termios.c_ispeed = uport->cons->baud;
 			uport->cons->cflag = 0;
 		}
 		/*
@@ -2110,8 +2112,10 @@ uart_set_options(struct uart_port *port, struct console *co,
 	 * Allow the setting of the UART parameters with a NULL console
 	 * too:
 	 */
-	if (co)
+	if (co) {
 		co->cflag = termios.c_cflag;
+		co->baud = baud;
+	}
 
 	return 0;
 }

@@ -153,6 +153,7 @@ struct console {
 	short	flags;
 	short	index;
 	int	cflag;
+	int	baud;
 	void	*data;
 	struct	 console *next;
 };
