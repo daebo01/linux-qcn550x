@@ -8,6 +8,7 @@
 
 #include <linux/irq.h>
 #include <linux/pci.h>
+#include <linux/reset.h>
 #include <linux/init.h>
 #include <linux/delay.h>
 #include <linux/platform_device.h>
@@ -55,6 +56,9 @@ struct ar724x_pci_controller {
 	struct irq_domain *domain;
 	struct resource io_res;
 	struct resource mem_res;
+
+	struct reset_control *hc_reset;
+	struct reset_control *phy_reset;
 };
 
 static struct irq_chip ar724x_pci_irq_chip;
@@ -340,18 +344,30 @@ static void ar724x_pci_hw_init(struct ar724x_pci_controller *apc)
 	int wait = 0;
 
 	/* deassert PCIe host controller and PCIe PHY reset */
-	ath79_device_reset_clear(AR724X_RESET_PCIE);
-	ath79_device_reset_clear(AR724X_RESET_PCIE_PHY);
+	reset_control_deassert(apc->hc_reset);
+	reset_control_deassert(apc->phy_reset);
 
-	/* remove the reset of the PCIE PLL */
-	ppl = ath79_pll_rr(AR724X_PLL_REG_PCIE_CONFIG);
-	ppl &= ~AR724X_PLL_REG_PCIE_CONFIG_PPL_RESET;
-	ath79_pll_wr(AR724X_PLL_REG_PCIE_CONFIG, ppl);
+	if (of_device_is_compatible(apc->np, "qcom,qca9550-pci")) {
+		/* remove the reset of the PCIE PLL */
+		ppl = ath79_pll_rr(QCA955X_PLL_PCIE_CONFIG_REG);
+		ppl &= ~QCA955X_PLL_PCIE_CONFIG_PLL_PWD;
+		ath79_pll_wr(QCA955X_PLL_PCIE_CONFIG_REG, ppl);
 
-	/* deassert bypass for the PCIE PLL */
-	ppl = ath79_pll_rr(AR724X_PLL_REG_PCIE_CONFIG);
-	ppl &= ~AR724X_PLL_REG_PCIE_CONFIG_PPL_BYPASS;
-	ath79_pll_wr(AR724X_PLL_REG_PCIE_CONFIG, ppl);
+		/* deassert bypass for the PCIE PLL */
+		ppl = ath79_pll_rr(QCA955X_PLL_PCIE_CONFIG_REG);
+		ppl &= ~QCA955X_PLL_PCIE_CONFIG_PLL_BYPASS;
+		ath79_pll_wr(QCA955X_PLL_PCIE_CONFIG_REG, ppl);
+	} else {
+		/* remove the reset of the PCIE PLL */
+		ppl = ath79_pll_rr(AR724X_PLL_REG_PCIE_CONFIG);
+		ppl &= ~AR724X_PLL_REG_PCIE_CONFIG_PPL_RESET;
+		ath79_pll_wr(AR724X_PLL_REG_PCIE_CONFIG, ppl);
+
+		/* deassert bypass for the PCIE PLL */
+		ppl = ath79_pll_rr(AR724X_PLL_REG_PCIE_CONFIG);
+		ppl &= ~AR724X_PLL_REG_PCIE_CONFIG_PPL_BYPASS;
+		ath79_pll_wr(AR724X_PLL_REG_PCIE_CONFIG, ppl);
+	}
 
 	/* set PCIE Application Control to ready */
 	app = __raw_readl(apc->ctrl_base + AR724X_PCI_REG_APP);
@@ -399,6 +415,14 @@ static int ar724x_pci_probe(struct platform_device *pdev)
 	if (apc->irq < 0)
 		return -EINVAL;
 
+	apc->hc_reset = devm_reset_control_get_exclusive(&pdev->dev, "hc");
+	if (IS_ERR(apc->hc_reset))
+		return PTR_ERR(apc->hc_reset);
+
+	apc->phy_reset = devm_reset_control_get_exclusive(&pdev->dev, "phy");
+	if (IS_ERR(apc->phy_reset))
+		return PTR_ERR(apc->phy_reset);
+
 	apc->np = pdev->dev.of_node;
 	apc->pci_controller.pci_ops = &ar724x_pci_ops;
 	apc->pci_controller.io_resource = &apc->io_res;
@@ -409,7 +433,7 @@ static int ar724x_pci_probe(struct platform_device *pdev)
 	 * Do the full PCIE Root Complex Initialization Sequence if the PCIe
 	 * host controller is in reset.
 	 */
-	if (ath79_reset_rr(AR724X_RESET_REG_RESET_MODULE) & AR724X_RESET_PCIE)
+	if (reset_control_status(apc->hc_reset))
 		ar724x_pci_hw_init(apc);
 
 	apc->link_up = ar724x_pci_check_link(apc);
@@ -427,6 +451,7 @@ static int ar724x_pci_probe(struct platform_device *pdev)
 
 static const struct of_device_id ar724x_pci_ids[] = {
 	{ .compatible = "qcom,ar7240-pci" },
+	{ .compatible = "qcom,qca9550-pci" },
 	{},
 };
 
