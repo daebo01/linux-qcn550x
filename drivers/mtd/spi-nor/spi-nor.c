@@ -1956,7 +1956,7 @@ static int sr2_bit7_quad_enable(struct spi_nor *nor)
 static int spi_nor_clear_sr_bp(struct spi_nor *nor)
 {
 	int ret;
-	u8 mask = SR_BP2 | SR_BP1 | SR_BP0;
+	u8 mask = SR_TB | SR_BP2 | SR_BP1 | SR_BP0;
 
 	ret = read_sr(nor);
 	if (ret < 0) {
