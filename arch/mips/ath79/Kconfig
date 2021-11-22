@@ -26,6 +26,11 @@ config SOC_QCA955X
 	select PCI_AR724X if PCI
 	def_bool n
 
+config SOC_QCN550X
+	select HAVE_PCI
+	select PCI_AR724X if PCI
+	def_bool n
+
 config PCI_AR724X
 	def_bool n
 
@@ -42,7 +47,7 @@ config ATH79_DEV_USB
 	def_bool n
 
 config ATH79_DEV_WMAC
-	depends on (SOC_AR913X || SOC_AR933X || SOC_AR934X || SOC_QCA955X)
+	depends on (SOC_AR913X || SOC_AR933X || SOC_AR934X || SOC_QCA955X || SOC_QCN550X)
 	def_bool n
 
 endif
