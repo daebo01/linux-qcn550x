@@ -552,4 +552,11 @@ config MTD_NAND_AR934X
 	  Enables support for NAND controller on Qualcomm Atheros SoCs.
 	  This controller is found on AR934x and QCA955x SoCs.
 
+config MTD_NAND_RB4XX
+	tristate "Support for NAND driver for Mikrotik RB4xx series boards"
+	depends on MFD_RB4XX_CPLD
+	help
+	  Enables support for the NAND flash chip on Mikrotik Routerboard
+	  RB4xx series.
+
 endif # MTD_RAW_NAND

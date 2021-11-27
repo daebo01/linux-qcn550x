@@ -1408,6 +1408,12 @@ config GPIO_SODAVILLE
 	help
 	  Say Y here to support Intel Sodaville GPIO.
 
+config GPIO_RB4XX
+	tristate "GPIO expander for Mikrotik RB4xx series boards"
+	depends on MFD_RB4XX_CPLD
+	help
+	  GPIO driver for Mikrotik Routerboard RB4xx series.
+
 endmenu
 
 menu "SPI GPIO expanders"
