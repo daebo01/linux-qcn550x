@@ -544,4 +544,12 @@ config MTD_NAND_DISKONCHIP_BBTWRITE
 	  load time (assuming you build diskonchip as a module) with the module
 	  parameter "inftl_bbt_write=1".
 
+config MTD_NAND_AR934X
+	tristate "Support for NAND controller on Qualcomm Atheros AR934x/QCA955x SoCs"
+	depends on ATH79 || COMPILE_TEST
+	depends on HAS_IOMEM
+	help
+	  Enables support for NAND controller on Qualcomm Atheros SoCs.
+	  This controller is found on AR934x and QCA955x SoCs.
+
 endif # MTD_RAW_NAND
