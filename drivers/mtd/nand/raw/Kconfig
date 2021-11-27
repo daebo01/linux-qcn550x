@@ -559,4 +559,8 @@ config MTD_NAND_RB4XX
 	  Enables support for the NAND flash chip on Mikrotik Routerboard
 	  RB4xx series.
 
+config MTD_NAND_RB91X
+	tristate "MikroTik RB91x NAND driver support"
+	depends on ATH79 && MTD_RAW_NAND
+
 endif # MTD_RAW_NAND

@@ -59,6 +59,7 @@ obj-$(CONFIG_MTD_NAND_STM32_FMC2)	+= stm32_fmc2_nand.o
 obj-$(CONFIG_MTD_NAND_MESON)		+= meson_nand.o
 obj-$(CONFIG_MTD_NAND_AR934X)		+= ar934x_nand.o
 obj-$(CONFIG_MTD_NAND_RB4XX)		+= nand_rb4xx.o
+obj-$(CONFIG_MTD_NAND_RB91X)		+= rb91x_nand.o
 
 nand-objs := nand_base.o nand_legacy.o nand_bbt.o nand_timings.o nand_ids.o
 nand-objs += nand_onfi.o
