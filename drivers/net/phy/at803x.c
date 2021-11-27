@@ -359,6 +359,13 @@ static int at803x_aneg_done(struct phy_device *phydev)
 	if (!(phy_read(phydev, AT803X_PSSR) & AT803X_PSSR_MR_AN_COMPLETE)) {
 		phydev_warn(phydev, "803x_aneg_done: SGMII link is not ok\n");
 		aneg_done = 0;
+#ifdef CONFIG_OF_MDIO
+		if (phydev->mdio.dev.of_node &&
+				of_property_read_bool(phydev->mdio.dev.of_node,
+				"at803x-override-sgmii-link-check")) {
+			aneg_done = 1;
+		}
+#endif
 	}
 	/* switch back to copper page */
 	phy_write(phydev, AT803X_REG_CHIP_CONFIG, ccr | AT803X_BT_BX_REG_SEL);
